@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester ·</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        body {
+            background: #0b0f17;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+        }
+        .card {
+            background: #1a1f2e;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 720px;
+            padding: 32px;
+            border: 1px solid #2c3348;
+        }
+        h1 {
+            color: #b5c9ff;
+            font-weight: 500;
+            font-size: 1.8rem;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.3px;
+        }
+        .sub {
+            color: #7f8aa8;
+            margin-bottom: 32px;
+            border-left: 3px solid #3e4a6b;
+            padding-left: 16px;
+            font-size: 0.95rem;
+        }
+        .field {
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            color: #a3afcf;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        input, textarea {
+            width: 100%;
+            background: #0f1420;
+            border: 1px solid #2f3855;
+            border-radius: 14px;
+            padding: 14px 18px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.2s;
+            outline: none;
+        }
+        input:focus, textarea:focus {
+            border-color: #5f7cbf;
+            box-shadow: 0 0 0 3px rgba(95,124,191,0.2);
+        }
+        textarea {
+            font-family: 'Fira Code', monospace;
+            resize: vertical;
+            min-height: 120px;
+        }
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .row .field {
+            flex: 1;
+        }
+        button {
+            background: #2e3b5e;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 28px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            border: 1px solid #4c5b82;
+        }
+        button:hover {
+            background: #3f4f7a;
+            border-color: #6b7fb5;
+        }
+        .response {
+            background: #0b101b;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 32px;
+            border-left: 5px solid #5f7cbf;
+        }
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            color: #8d9ed5;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        pre {
+            background: #02050a;
+            padding: 16px;
+            border-radius: 12px;
+            color: #cbd5f0;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            font-family: 'Fira Code', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            border: 1px solid #2a3145;
+        }
+        .badge {
+            background: #1e2940;
+            color: #a9bef5;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            border: 1px solid #3b4870;
+        }
+        .footer {
+            margin-top: 24px;
+            text-align: center;
+            color: #4c5780;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>⚡  · API TESTER</h1>
+        <div class="sub">Masukkan endpoint & token — respons langsung ditampilkan</div>
+
+        <div class="row">
+            <div class="field" style="flex:3;">
+                <label>🌐 REQ URL</label>
+                <input type="url" id="urlInput" placeholder="https://api.example.com/data" value="https://jsonplaceholder.typicode.com/posts/1">
+            </div>
+            <div class="field" style="flex:2;">
+                <label>🔑 REQ API (Bearer)</label>
+                <input type="text" id="apiInput" placeholder="token atau kosongkan">
+            </div>
+            <button id="sendBtn">➡️ KIRIM</button>
+        </div>
+
+        <div class="field">
+            <label>📦 RESPONS</label>
+            <div class="response">
+                <div class="response-header">
+                    <span>🔍 PREVIEW</span>
+                    <span class="badge" id="statusBadge">status -</span>
+                </div>
+                <pre id="responsePre">Klik kirim untuk melihat hasil...</pre>
+            </div>
+        </div>
+
+        <div class="footer">
+            ZEKZ AI — request GET dengan header Authorization jika token diisi
+        </div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const apiInput = document.getElementById('apiInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const responsePre = document.getElementById('responsePre');
+        const statusBadge = document.getElementById('statusBadge');
+
+        sendBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url) {
+                alert('URL tidak boleh kosong!');
+                return;
+            }
+
+            // Tampilkan loading
+            responsePre.textContent = '⏳ Mengirim request...';
+            statusBadge.textContent = '⏳ loading';
+
+            try {
+                const headers = {};
+                const token = apiInput.value.trim();
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers,
+                });
+
+                // Update status badge
+                statusBadge.textContent = `${response.status} ${response.statusText}`;
+
+                // Ambil response sebagai teks (bisa JSON atau bukan)
+                const text = await response.text();
+                
+                // Coba format JSON jika mungkin
+                try {
+                    const json = JSON.parse(text);
+                    responsePre.textContent = JSON.stringify(json, null, 2);
+                } catch {
+                    responsePre.textContent = text;
+                }
+
+            } catch (error) {
+                statusBadge.textContent = '❌ error';
+                responsePre.textContent = `Error: ${error.message}`;
+            }
+        });
+
+        // Optional: kirim dengan Enter di input (tombol ditekan)
+        [urlInput, apiInput].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
